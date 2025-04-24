@@ -1,15 +1,25 @@
 import { User } from "../models/index.js";
 import { appError } from "../utils/errorController.js";
+import { compare, hash } from "bcryptjs";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from "../utils/generateToken.js";
 
 export class userController {
   async create(req, res, next) {
     try {
-      const body = req.body;
-      const user = await User.findOne({ email: body.email });
+      const { email, password } = req.body;
+      const user = await User.findOne({ email });
       if (user) {
         throw new appError(`User with ${body.email} is exist`);
       }
-      const newUser = new User(body);
+      const data = req.body;
+      const hashedPassword = await hash(password, 10);
+      const newUser = new User({
+        ...data,
+        password: hashedPassword,
+      });
       await newUser.save();
 
       res.status(201).json({
@@ -19,6 +29,120 @@ export class userController {
         data: {
           newUser,
         },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async login(req, res, next) {
+    try {
+      const { email, password } = req.body;
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        throw new appError("User not found", 404);
+      }
+      const passwordMatch = await compare(password, user.password);
+
+      if (!passwordMatch) {
+        throw new appError("Password is not matched", 403);
+      }
+      const payload = {
+        id: user._id,
+        name: user.fullName,
+        role: user.role,
+      };
+      const accessToken = await generateAccessToken(payload);
+      const refreshToken = await generateRefreshToken(payload);
+
+      res.status(200).json({
+        status: "success",
+        message: "Logged in successfully",
+        data: {
+          ...payload,
+          accessToken,
+          refreshToken,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async getAll(_, res, next) {
+    try {
+      const users = await User.find(
+        {},
+        "_id __v fullName role createdAt updatedAt"
+      );
+      res.status(200).json({
+        status: "success",
+        message: "All users",
+        data: users,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async getById(req, res, next) {
+    try {
+      const { id } = req.params;
+      const user = await User.findOne(
+        { _id: id },
+        "_id __v fullName role createdAt updatedAt"
+      );
+      if (!user) {
+        throw new appError("User not found", 404);
+      }
+      res.status(200).json({
+        status: "success",
+        message: "User by id",
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async update(req, res, next) {
+    try {
+      const { id } = req.params;
+      const user = await User.findById(id);
+      if (!user) {
+        throw new appError("User not found", 404);
+      }
+      const data = req.body;
+      const { email, password } = req.body;
+      if (email) {
+        const existEmail = await User.findOne({ email });
+        if (existEmail) {
+          throw new appError("User with this email already exist", 400);
+        }
+      }
+      if (password) {
+        const hashedPassword = await hash(password, 10);
+        data.password = hashedPassword;
+      }
+      const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
+      res.status(200).json({
+        status: "success",
+        message: "User updated successfully",
+        data: updatedUser,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async delete(req, res, next) {
+    try {
+      const { id } = req.params;
+      const user = await User.findById(id);
+      if (!user) {
+        throw new appError("User not found", 404);
+      }
+      await User.findByIdAndDelete(id);
+      res.json({
+        status: "success",
+        message: "User deleted successfully",
+        data: {},
       });
     } catch (error) {
       next(error);
