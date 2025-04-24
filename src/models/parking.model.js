@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const parkingSchema = Schema({
+const parkingSchema = new Schema({
   location: {
     type: String,
     required: true,
@@ -27,3 +27,5 @@ const parkingSchema = Schema({
     ref: "Car",
   },
 });
+
+export const Parking = model("Parking", parkingSchema);

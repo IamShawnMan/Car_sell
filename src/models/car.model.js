@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-export const carSchema = Schema(
+export const carSchema = new Schema(
   {
     user: {
       type: Schema.Types.ObjectId,

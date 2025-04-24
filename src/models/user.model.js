@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const userSchema = Schema(
+const userSchema = new Schema(
   {
     fullName: {
       type: String,
@@ -23,6 +23,7 @@ const userSchema = Schema(
     role: {
       type: String,
       enum: ["user", "admin"],
+      default: "user",
     },
   },
   {
