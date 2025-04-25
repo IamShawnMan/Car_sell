@@ -1,6 +1,11 @@
+import { compare, hash } from "bcryptjs";
 import { User } from "../models/index.js";
 import { appError } from "../utils/errorController.js";
-import { compare, hash } from "bcryptjs";
+import {
+  userValidation,
+  loginValidation,
+  userUpdateValidate,
+} from "../validations/index.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -9,15 +14,20 @@ import {
 export class userController {
   async create(req, res, next) {
     try {
-      const { email, password } = req.body;
+      const { error, value } = userValidation(req.body);
+
+      if (error) {
+        throw new appError(error.message, 400);
+      }
+      const { email, password } = value;
       const user = await User.findOne({ email });
       if (user) {
-        throw new appError(`User with ${body.email} is exist`);
+        throw new appError(`User with ${email} is exist`);
       }
-      const data = req.body;
+
       const hashedPassword = await hash(password, 10);
       const newUser = new User({
-        ...data,
+        ...value,
         password: hashedPassword,
       });
       await newUser.save();
@@ -36,7 +46,11 @@ export class userController {
   }
   async login(req, res, next) {
     try {
-      const { email, password } = req.body;
+      const { error, value } = loginValidation(req.body);
+      if (error) {
+        throw new appError(error.message, 400);
+      }
+      const { email, password } = value;
       const user = await User.findOne({ email });
 
       if (!user) {
@@ -55,13 +69,18 @@ export class userController {
       const accessToken = await generateAccessToken(payload);
       const refreshToken = await generateRefreshToken(payload);
 
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        expires: Number(process.env.REFRESH_TOKEN_EXPIRES),
+      });
+
       res.status(200).json({
         status: "success",
         message: "Logged in successfully",
         data: {
           ...payload,
           accessToken,
-          refreshToken,
         },
       });
     } catch (error) {
@@ -109,8 +128,12 @@ export class userController {
       if (!user) {
         throw new appError("User not found", 404);
       }
-      const data = req.body;
-      const { email, password } = req.body;
+      const { error, value } = userUpdateValidate(req.body);
+      if (error) {
+        throw new appError(error.message, 400);
+      }
+      // const data = req.body;
+      const { email, password } = value;
       if (email) {
         const existEmail = await User.findOne({ email });
         if (existEmail) {
@@ -119,9 +142,11 @@ export class userController {
       }
       if (password) {
         const hashedPassword = await hash(password, 10);
-        data.password = hashedPassword;
+        value.password = hashedPassword;
       }
-      const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
+      const updatedUser = await User.findByIdAndUpdate(id, value, {
+        new: true,
+      });
       res.status(200).json({
         status: "success",
         message: "User updated successfully",
