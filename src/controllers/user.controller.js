@@ -22,7 +22,7 @@ export class userController {
       const { email, password } = value;
       const user = await User.findOne({ email });
       if (user) {
-        throw new appError(`User with ${email} is exist`);
+        throw new appError(`User with ${email} is exist`, 400);
       }
 
       const hashedPassword = await hash(password, 10);

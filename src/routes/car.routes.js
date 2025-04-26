@@ -1,13 +1,14 @@
 import { Router } from "express";
 import { carController } from "../controllers/index.js";
+import { authMiddleware } from "../middlewares/auth.guard.js";
 
 const router = Router();
 const controller = new carController();
 
 router
-  .post("/", controller.create)
-  .get("/", controller.getAll)
-  .get("/:id", controller.getOne)
-  .put("/:id", controller.update);
+  .post("/", authMiddleware, controller.create)
+  .get("/", authMiddleware, controller.getAll)
+  .get("/:id", authMiddleware, controller.getOne)
+  .put("/:id", authMiddleware, controller.update);
 
 export { router as carRouter };
