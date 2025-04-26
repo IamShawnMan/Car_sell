@@ -11,18 +11,15 @@ const parkingSchema = new Schema({
   },
   isBooked: {
     type: Boolean,
-    required: true,
     default: false,
   },
   bookedBy: {
     type: Schema.Types.ObjectId,
-    required: true,
     default: null,
     ref: "User",
   },
   car: {
     type: Schema.Types.ObjectId,
-    required: true,
     default: null,
     ref: "Car",
   },

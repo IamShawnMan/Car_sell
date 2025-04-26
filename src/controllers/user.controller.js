@@ -65,6 +65,7 @@ export class userController {
         id: user._id,
         name: user.fullName,
         role: user.role,
+        email: user.email,
       };
       const accessToken = await generateAccessToken(payload);
       const refreshToken = await generateRefreshToken(payload);

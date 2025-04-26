@@ -11,7 +11,7 @@ router
   .post("/login", controller.login)
   .get("/", authMiddleware, roleGuard("admin"), controller.getAll)
   .get("/:id", authMiddleware, roleGuard("admin"), controller.getById)
-  .put("/:id", authMiddleware, roleGuard("admin"), controller.update)
+  .put("/:id", authMiddleware, controller.update)
   .delete("/:id", authMiddleware, roleGuard("admin"), controller.delete);
 
 export { router as userRouter };
