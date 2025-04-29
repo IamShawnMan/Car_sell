@@ -12,7 +12,7 @@ export const carSchema = new Schema(
       required: true,
       trim: true,
     },
-    model: {
+    carModel: {
       type: String,
       required: true,
       trim: true,

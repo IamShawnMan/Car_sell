@@ -1,6 +1,7 @@
 import { compare, hash } from "bcryptjs";
 import { User } from "../models/index.js";
 import { appError } from "../utils/errorController.js";
+import { otpGenerate } from "../utils/otp-generator.js";
 import {
   userValidation,
   loginValidation,
@@ -10,6 +11,9 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../utils/generateToken.js";
+import { otpMail } from "../utils/createMail.js";
+import { transporter } from "../utils/mailer.js";
+import { getCache, setCache } from "../utils/catch.js";
 
 export class userController {
   async create(req, res, next) {
@@ -61,6 +65,46 @@ export class userController {
       if (!passwordMatch) {
         throw new appError("Password is not matched", 403);
       }
+      const otp = otpGenerate();
+
+      const data = {
+        email: user.email,
+        otp,
+      };
+
+      transporter.sendMail(otpMail(data), (err, info) => {
+        if (err) {
+          throw new appError("Error on sending mail", 400);
+        } else {
+          console.log(info);
+          setCache(user.email, otp);
+        }
+      });
+
+      res.status(200).json({
+        status: "success",
+        message: "Confirmation code sent to your email",
+        data: {},
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async confirmLogin(req, res, next) {
+    try {
+      const { email, otp } = req.body;
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        throw new appError("User not found", 404);
+      }
+
+      const otpCache = getCache(email);
+
+      if (!otpCache || otpCache != otp) {
+        throw new appError("OTP expired", 400);
+      }
+
       const payload = {
         id: user._id,
         name: user.fullName,

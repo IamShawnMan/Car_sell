@@ -9,6 +9,7 @@ const controller = new userController();
 router
   .post("/register", controller.create)
   .post("/login", controller.login)
+  .post("/login/confirm", controller.confirmLogin)
   .get("/", authMiddleware, roleGuard("admin"), controller.getAll)
   .get("/:id", authMiddleware, roleGuard("admin"), controller.getById)
   .put("/:id", authMiddleware, controller.update)

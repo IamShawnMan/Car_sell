@@ -103,6 +103,7 @@ export class parkingController {
         name: req.user.name,
         slotNumber: parking.slotNumber,
         plateNumber: usersCar.plateNumber,
+        model: usersCar.carModel,
       };
 
       transporter.sendMail(bookedMail(mailData), function (err, info) {
@@ -118,6 +119,24 @@ export class parkingController {
         message: "Place is booked successfully",
         data: bookedParking,
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async unbook(req, res, next) {
+    try {
+      const { id } = req.params;
+      const parking = await Parking.findById(id);
+      const user = req.user;
+
+      if (!parking) {
+        throw new appError("Parking not found", 404);
+      }
+      if (user.id !== parking.bookedBy && user.role !== "admin") {
+        throw new appError("You can not change the status", 400);
+      }
+
+      res.send(parking);
     } catch (error) {
       next(error);
     }

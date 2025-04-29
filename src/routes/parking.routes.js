@@ -11,6 +11,7 @@ router
   .post("/", authMiddleware, roleGuard("admin"), controller.create)
   .get("/", authMiddleware, controller.getAll)
   .get("/:id", authMiddleware, controller.getOne)
-  .put("/book/:id", authMiddleware, controller.book);
+  .put("/book/:id", authMiddleware, controller.book)
+  .put("/unbook/:id", authMiddleware, controller.unbook);
 
 export { router as parkingRouter };
