@@ -18,6 +18,10 @@ const parkingSchema = new Schema({
     default: null,
     ref: "User",
   },
+  bookedAt: {
+    type: Date,
+    default: null,
+  },
   car: {
     type: Schema.Types.ObjectId,
     default: null,

@@ -9,13 +9,11 @@ export class parkingController {
       const data = req.body;
       const slot = await Parking.findOne({ slotNumber: data.slotNumber });
 
-      console.log(slot);
-
       if (slot) {
         throw new appError("This slot is created already", 400);
       }
       const parking = new Parking(data);
-      parking.save();
+      await parking.save();
 
       res.status(201).json({
         status: "success",
@@ -63,6 +61,7 @@ export class parkingController {
     try {
       const { id } = req.params;
       const { car } = req.body;
+      let { bookedAt } = req.body;
       const parking = await Parking.findById(id);
 
       if (!parking) {
@@ -75,11 +74,17 @@ export class parkingController {
         throw new appError("You have to enter car", 400);
       }
 
+      if (!bookedAt) {
+        const date = new Date(Date.now());
+        const time = date.toLocaleString();
+        console.log(time);
+
+        bookedAt = time;
+      }
+
       const usersCar = await Car.findById(car);
 
-      console.log(usersCar.user.toString(), req.user.id);
-
-      if (!usersCar || usersCar.user.toString() !== req.user.id) {
+      if (req.user.role != "admin" || !usersCar) {
         throw new appError(
           "Car not found or you have not added this car to your cars list",
           400
@@ -89,6 +94,7 @@ export class parkingController {
       const bookingData = {
         isBooked: true,
         bookedBy: req.user.id,
+        bookedAt,
         car,
       };
 
