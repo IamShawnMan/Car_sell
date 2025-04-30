@@ -166,6 +166,24 @@ export class userController {
       next(error);
     }
   }
+  async getMe(req, res, next) {
+    try {
+      const { id } = req.user;
+      const user = await User.findById(id, "fullName email role");
+
+      if (!user) {
+        throw new appError("User not found", 404);
+      }
+
+      res.json({
+        status: "success",
+        message: "My account",
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
   async update(req, res, next) {
     try {
       const { id } = req.params;

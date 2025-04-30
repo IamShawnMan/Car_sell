@@ -1,4 +1,4 @@
-import { Car, Parking } from "../models/index.js";
+import { Car, Parking, User } from "../models/index.js";
 import { appError } from "../utils/errorController.js";
 import { transporter } from "../utils/mailer.js";
 import { bookedMail } from "../utils/createMail.js";
@@ -137,6 +137,25 @@ export class parkingController {
       }
 
       res.send(parking);
+    } catch (error) {
+      next(error);
+    }
+  }
+  async delete(req, res, next) {
+    try {
+      const { id } = req.params;
+      const parking = await Parking.findById(id);
+
+      if (!parking) {
+        throw new appError("Parking not found", 404);
+      }
+      await Parking.findByIdAndDelete(id);
+
+      res.json({
+        status: "success",
+        message: "Parking deleted",
+        data: {},
+      });
     } catch (error) {
       next(error);
     }

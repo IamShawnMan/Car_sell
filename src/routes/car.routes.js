@@ -9,6 +9,7 @@ router
   .post("/", authMiddleware, controller.create)
   .get("/", authMiddleware, controller.getAll)
   .get("/:id", authMiddleware, controller.getOne)
-  .put("/:id", authMiddleware, controller.update);
+  .put("/:id", authMiddleware, controller.update)
+  .delete("/:id", authMiddleware, controller.delete);
 
 export { router as carRouter };

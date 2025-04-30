@@ -10,9 +10,10 @@ router
   .post("/register", controller.create)
   .post("/login", controller.login)
   .post("/login/confirm", controller.confirmLogin)
+  .get("/me", authMiddleware, controller.getMe)
   .get("/", authMiddleware, roleGuard("admin"), controller.getAll)
   .get("/:id", authMiddleware, roleGuard("admin"), controller.getById)
-  .put("/:id", authMiddleware, controller.update)
+  .put("/:id", authMiddleware, roleGuard("admin"), controller.update)
   .delete("/:id", authMiddleware, roleGuard("admin"), controller.delete);
 
 export { router as userRouter };
